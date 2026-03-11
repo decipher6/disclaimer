@@ -2,7 +2,7 @@ services:
   - type: web
     name: compliance-ai-reviewer
     env: python
-    pythonVersion: "3.13.12"
+    pythonVersion: "3.13"
     buildCommand: pip install -r requirements.txt
     startCommand: python app.py
     envVars:
