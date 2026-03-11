@@ -77,12 +77,22 @@
 - Easy GitHub integration
 
 1. Go to https://render.com
-2. New → Web Service
-3. Connect GitHub repo
-4. Settings:
-   - Build Command: `pip install -r requirements.txt`
-   - Start Command: `python app.py`
-5. Add environment variables
+2. Sign up/login with GitHub
+3. New → Web Service
+4. Connect your GitHub repository
+5. Settings:
+   - **Name**: compliance-ai-reviewer
+   - **Environment**: Python 3
+   - **Python Version**: `3.13.12` ⚠️ **IMPORTANT: Must be 3.13, NOT 3.14** (crewai doesn't support 3.14)
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `python app.py`
+   - **Plan**: Free (or Starter for better performance)
+6. Add environment variables:
+   - `GOOGLE_API_KEY` = your Gemini API key
+   - `GEMINI_API_KEY` = same as above (optional, for compatibility)
+7. Click "Create Web Service"
+
+**Note**: Render will auto-detect `render.yaml` if present, or use the settings above.
 
 #### Fly.io
 - Good free tier
