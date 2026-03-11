@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: compliance-ai-reviewer
+    env: python
+    pythonVersion: "3.13"
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py
+    envVars:
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+    healthCheckPath: /api/health
