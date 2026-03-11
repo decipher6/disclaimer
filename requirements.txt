@@ -1,0 +1,9 @@
+# This file is for Vercel deployment compatibility
+# The actual dependencies are managed by pyproject.toml
+
+contextual-client
+crewai[google-genai,litellm,tools]==1.10.1
+fastapi==0.109.0
+uvicorn[standard]>=0.31.1
+python-multipart>=0.0.9
+python-dotenv>=1.0.0

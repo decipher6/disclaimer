@@ -1,0 +1,37 @@
+[project]
+name = "full_marketing_materials_reviewer"
+version = "0.1.0"
+description = "full_marketing_materials_reviewer using crewAI"
+authors = [{ name = "Your Name", email = "you@example.com" }]
+requires-python = ">=3.10,<3.14"
+dependencies = [
+    "contextual-client",
+    "crewai[google-genai,litellm,tools]==1.10.1",
+    "fastapi==0.109.0",
+    "uvicorn[standard]>=0.31.1",
+    "python-multipart>=0.0.9",
+    "python-dotenv>=1.0.0",
+]
+
+[project.scripts]
+full_marketing_materials_reviewer = "full_marketing_materials_reviewer.main:run"
+run_crew = "full_marketing_materials_reviewer.main:run"
+train = "full_marketing_materials_reviewer.main:train"
+replay = "full_marketing_materials_reviewer.main:replay"
+test = "full_marketing_materials_reviewer.main:test"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["backend/src/full_marketing_materials_reviewer"]
+
+[tool.hatch.build]
+include = [
+    "backend/src/full_marketing_materials_reviewer/**/*.py",
+    "backend/src/full_marketing_materials_reviewer/**/*.yaml",
+]
+
+[tool.crewai]
+type = "crew"

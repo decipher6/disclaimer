@@ -1,0 +1,184 @@
+---
+parse_pdf_document:
+  description: Parse the uploaded PDF document {pdf_file_path} and extract all text
+    content from each page. Ensure the document is properly processed and text is
+    extracted word-for-word without any alterations.
+  expected_output: Parsed PDF content with clear page-by-page text extraction, ready
+    for compliance checking across different jurisdictions
+  agent: pdf_document_coordinator
+general_compliance_review:
+  description: |-
+    You are a Full-marketing General Compliance Agent for financial services marketing materials.
+
+    Evaluate the extracted content against the general full-marketing material rules as follows:
+    1. The marketing material must be clear, fair and not misleading. The purpose of the promotion, the nature or type of the FMPs business and the type of the Products being promoted (if applicable) must be clear.
+    2. Any statement, promise or forecast must be fair and not misleading in the form and context in which it appears. If any promise or forecast is based on assumptions, the assumptions must be stated. The marketing material must not forecast the possible future price of a particular security.
+    3. Marketing Materials must not include false or misleading statements.
+    4. All Marketing Materials that contain any reference to past performance must include a statement that past performance is not necessarily an indicator of future results.
+    5. A statement regarding investment risks associated with the Products to be promoted must be included within the marketing materials’ disclaimer.
+  expected_output: Detailed compliance report listing all general rule violations
+    with specific excerpt references, and recommendations for remediation
+  agent: general_compliance_checker
+  async_execution: true
+  context:
+  - parse_pdf_document
+uae_compliance_review:
+  description: |-
+    Conduct a thorough review of the parsed PDF content against UAE-specific regulatory requirements. Check each page against the UAE checklist provided below.
+
+    UAE Checklist:
+    1. The type and place of issue of the Products to be promoted, as well as the number of issued Products, currency of the issue and all related information, within the disclaimers.
+    2. A statement whether the promoted Products are listed, and if yes, include a list of the markets where they are listed, within the disclaimers.
+    3. A minimum limit for subscription or purchase, and any ban or restriction on the investor, its trading or subscription, within the disclaimers.
+    4. Mechanisms of dividends distribution and redemption as well as maturity dates, if applicable.
+    5. The type of investor appropriate to the Products (ordinary, professional or counterparty), within the disclaimers.
+    6. The investment risks associated with the Products to be promoted, within the disclaimers.
+    7. A statement identifying the major shareholders of the issuer and/or the foreign issuer who own 10% or more of the shares.
+    8. The method of communication used by the entities concerned with the subscription, selling and purchasing of the promoted Products, within the disclaimers.
+    9. Details of the Shariah Supervisory Board that will ensure that the promoted Products are Shariah-compliant (if applicable).
+    10. The mechanisms and means for disclosing data and information.
+    11. The name, address, contact details and regulatory status of the appointed SCA licensed promoter, within the disclaimers.
+
+    If the fund has been approved in UAE, then it must include the section with Greenstone Equity Partners' location in the last paragraph of the UAE-specific disclaimer.
+  expected_output: Comprehensive UAE compliance assessment with identified violations
+    with specific excerpts, compliance gaps, and UAE-specific recommendations to those
+    violations.
+  agent: uae_compliance_specialist
+  async_execution: true
+  context:
+  - parse_pdf_document
+ksa_compliance_review:
+  description: |-
+    Conduct a thorough review of the parsed PDF content against KSA-specific regulatory requirements. Check each page against the KSA checklist provided below.
+
+    KSA Checklist:
+    1. Marketing Materials must not include false or misleading statements relating to the securities business, size or resources of Greenstone Saudi Arabia
+    2. The Marketing Materials must not describe a Product as guaranteed unless there is a legally enforceable arrangement with a third party who undertakes to meet in full an investor’s claim under the guarantee.
+    3. Comparisons between different Products must:
+        1. be based on facts verified by Greenstone Saudi Arabia or on assumptions stated within the Marketing Materials;
+        2. be presented in a fair and balanced way; and
+        3. not omit anything material to the comparison.
+    4. The Marketing Materials need to include a statement acknowledging material interests of Greenstone Saudi Arabia or its affiliates if they:
+        1. have or may have a position or holding in the Product concerned or in related Products; or
+        2. are providing or have provided within the previous 12 months significant advice or securities business services to the issuer of the Product concerned or of a related Product.
+        3. Any information about the past performance of Products or of Greenstone Saudi Arabia or its affiliates that is included in the Marketing Materials must:
+            1. be a fair representation of the past performance;
+            2. not be selected so as to exaggerate performance;
+            3. state the source of the information;
+            4. be based on verifiable information; and
+            5. warn that past performance is not necessarily a guide to future performance.
+        4. If the Marketing Materials contain any reference to the impact of zakat or taxation, they must state the assumed rate of zakat or taxation and any relief; and state that such rates and relief may change over time.
+        5. If cancellation rights apply to the Products to be promoted, the Marketing Materials must contain details of such rights, including the period within which they may be exercised.
+        6. In addition to the above specific requirements, the Capital Market Institution Regulations prescribe risk warning statements that need to be included within the disclaimers when marketing specific Products. Such warnings include, *inter alia*, statements in relation to fluctuations in price or value, risks in relation to illiquid securities, adverse effects of changes in currency rates on the value, price or income of the Product.
+        7. The system must flag/highlight any information related to the minimum commitment and fund size provided within the marketing materials. This will allow Compliance to check if that information differs from the ones submitted to the KSA CMA within the fund registration documents.
+  expected_output: Comprehensive KSA compliance assessment with identified violations
+    with specific excerpts, compliance gaps, and KSA-specific recommendations to those
+    violations.
+  agent: ksa_compliance_specialist
+  async_execution: true
+  context:
+  - parse_pdf_document
+kuwait_compliance_review:
+  description: |-
+    Conduct a thorough review of the parsed PDF content against Kuwait-specific regulatory requirements. Check each page against the Kuwait checklist provided below.
+
+    Kuwait Checklist:
+    1. Until a Product has been registered with the Kuwait CMA, materials issued to Kuwait based investors must only present factual, non-promotional information. Such communications may include generic information about a FMP, including its strategies, track record and team bios, information on previous funds (vintages, strategies, fund sizes, returns, etc.), and limited factual (non-promotional) information about any Product which may be marketed outside Kuwait at the time and may be marketed in Kuwait in the future.
+    2. Marketing Materials must include a phrase, in clearly identifiable font, referencing that the document was prepared for promotional purposes.
+    3. Marketing Materials must include the name of the CMA Licensed entity who has approved the content of the Marketing Materials.
+    4. Marketing Materials must include an undertaking that the content does not disguise, diminish or obscure important items in relation to the Product.
+    5. The system must flag/highlight any information related to the minimum commitment and fund size provided within the marketing materials. This will allow Compliance to check if that information differs from the ones submitted to the Kuwait CMA within the fund registration documents
+  expected_output: Comprehensive Kuwait compliance assessment with identified violations
+    with specific excerpts, compliance gaps, and Kuwait-specific recommendations to
+    those violations.
+  agent: kuwait_compliance_specialist
+  async_execution: true
+  context:
+  - parse_pdf_document
+difc_compliance_review:
+  description: |-
+    Conduct a thorough review of the parsed PDF content against DIFC-specific regulatory requirements. Check each page against the DIFC checklist provided below.
+
+    DIFC Checklist:
+    1. include the name, legal and licensing status of Greenstone (DIFC) Limited within the disclaimers.
+    2. a clear statement within the disclaimers of the financial services Greenstone (DIFC) Limited is licensed or approved to provide.
+    3. a clear statement within the disclaimers that the marketing material is intended only for Professional Clients or Market Counterparties and that no other Person should act upon it.
+    4. Marketing Materials must not publish or disclose any future expectations based on past performance or any other assumptions without appropriate disclosures.
+    5. Marketing Materials must be distributed appropriately to the target recipients, and therefore marketing materials intended only for Professional Clients must not be distributed to Retail Clients.
+
+    If the fund has been approved in DIFC, then it must include the section with Greenstone (DIFC) location in the last paragraph of the DIFC-specific disclaimer.
+  expected_output: Comprehensive DIFC compliance assessment with identified violations
+    with specific excerpts, compliance gaps, and DIFC-specific recommendations to
+    those violations.
+  agent: difc_compliance_specialist
+  async_execution: true
+  context:
+  - parse_pdf_document
+qatar_compliance_review:
+  description: |-
+    Conduct a thorough review of the parsed PDF content against Qatar-specific regulatory requirements. Check each page against the Qatar checklist provided below.
+
+    Qatar Checklist:
+    1. Marketing Materials must comply with QFC regulatory requirements.
+    2. All disclaimers must include appropriate risk warnings.
+    3. Marketing Materials must not include false or misleading statements.
+    4. Past performance disclosures must include appropriate warnings.
+    5. All required regulatory information must be clearly disclosed.
+
+    Review the document against Qatar Financial Centre (QFC) regulations and provide comprehensive compliance assessment.
+  expected_output: Comprehensive Qatar compliance assessment with identified violations
+    with specific excerpts, compliance gaps, and Qatar-specific recommendations to those
+    violations.
+  agent: qatar_compliance_specialist
+  async_execution: true
+  context:
+  - parse_pdf_document
+oman_compliance_review:
+  description: |-
+    Conduct a thorough review of the parsed PDF content against Oman-specific regulatory requirements. Check each page against the Oman checklist provided below.
+
+    Oman Checklist:
+    1. Marketing Materials must comply with CMA regulatory requirements.
+    2. All disclaimers must include appropriate risk warnings.
+    3. Marketing Materials must not include false or misleading statements.
+    4. Past performance disclosures must include appropriate warnings.
+    5. All required regulatory information must be clearly disclosed.
+
+    Review the document against Oman Capital Market Authority (CMA) regulations and provide comprehensive compliance assessment.
+  expected_output: Comprehensive Oman compliance assessment with identified violations
+    with specific excerpts, compliance gaps, and Oman-specific recommendations to those
+    violations.
+  agent: oman_compliance_specialist
+  async_execution: true
+  context:
+  - parse_pdf_document
+compile_final_compliance_report:
+  description: |-
+    You are a Summary & Recommendation Agent for financial services compliance reviews.
+    Generate a concise executive summary. Include:
+    1. Overall compliance assessment
+    2. Key risks identified
+    3. Critical issues requiring immediate attention
+    4. Recommended actions
+    5. Positive aspects
+
+    Determine the overall result:
+    - "compliant" - All critical/major rules pass
+    - "non_compliant" - Any critical rule fails or multiple major rules fail
+    - "needs_review" - Some major rules fail or many warnings
+  expected_output: |-
+    Generate a concise executive summary. Include:
+    1. Overall compliance assessment
+    2. Key risks identified
+    3. Critical issues requiring immediate attention
+    4. Recommended actions
+    5. Positive aspects
+  agent: compliance_report_compiler
+  context:
+  - general_compliance_review
+  - uae_compliance_review
+  - ksa_compliance_review
+  - kuwait_compliance_review
+  - difc_compliance_review
+  - qatar_compliance_review
+  - oman_compliance_review
