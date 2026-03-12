@@ -171,12 +171,14 @@ async def read_root():
             justify-content: space-between;
             align-items: center;
             margin-bottom: 10px;
+            gap: 12px;
         }
         
         .agent-name {
             font-weight: 600;
             color: #1e3a8a;
             font-size: 16px;
+            flex: 1;
         }
         
         .agent-status {
@@ -184,6 +186,28 @@ async def read_root():
             align-items: center;
             gap: 8px;
             font-size: 14px;
+            flex-shrink: 0;
+        }
+        
+        .agent-status .status-tick {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: #10b981;
+            color: white;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .agent-item.complete .agent-status .status-tick {
+            display: inline-flex;
+        }
+        
+        .agent-item.complete .agent-status .spinner {
+            display: none;
         }
         
         .spinner {
@@ -338,54 +362,68 @@ async def read_root():
         .progress {
             display: none;
             margin-top: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
         .progress.active {
             display: block;
         }
         
+        .progress-label {
+            font-weight: 600;
+            color: #1e3a8a;
+            margin-bottom: 12px;
+            font-size: 15px;
+        }
+        
+        .progress-count {
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 10px;
+        }
+        
         .progress-steps {
             display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
         }
         
         .step {
-            flex: 1;
-            text-align: center;
-            padding: 10px;
-            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            border-radius: 20px;
+            background: #f3f4f6;
+            font-size: 13px;
+            transition: background 0.2s, color 0.2s;
         }
         
-        .step::after {
-            content: '';
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            width: 100%;
-            height: 2px;
-            background: #e5e7eb;
-            z-index: -1;
+        .step.active {
+            background: #dbeafe;
+            color: #1e40af;
         }
         
-        .step:last-child::after {
-            display: none;
-        }
-        
-        .step.active::after {
-            background: #3b82f6;
+        .step.complete {
+            background: #d1fae5;
+            color: #065f46;
         }
         
         .step-icon {
-            width: 40px;
-            height: 40px;
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
             background: #e5e7eb;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 10px;
-            font-size: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            flex-shrink: 0;
         }
         
         .step.active .step-icon {
@@ -396,6 +434,13 @@ async def read_root():
         .step.complete .step-icon {
             background: #10b981;
             color: white;
+        }
+        
+        .step-label {
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         
         .results {
@@ -586,10 +631,10 @@ async def read_root():
                     <input type="checkbox" value="kuwait" checked> State of Kuwait
                 </label>
                 <label class="jurisdiction-checkbox">
-                    <input type="checkbox" value="qatar"> State of Qatar
+                    <input type="checkbox" value="qatar" checked> State of Qatar
                 </label>
                 <label class="jurisdiction-checkbox">
-                    <input type="checkbox" value="oman"> Sultanate of Oman
+                    <input type="checkbox" value="oman" checked> Sultanate of Oman
                 </label>
                 <label class="jurisdiction-checkbox">
                     <input type="checkbox" value="uae" checked> United Arab Emirates
@@ -599,24 +644,9 @@ async def read_root():
             <button id="submitBtn" onclick="submitReview()">Submit for Review</button>
             
             <div class="progress" id="progress">
-                <div class="progress-steps">
-                    <div class="step active" id="step1">
-                        <div class="step-icon">1</div>
-                        <div>Extracting Content</div>
-                    </div>
-                    <div class="step" id="step2">
-                        <div class="step-icon">2</div>
-                        <div>Checking Compliance</div>
-                    </div>
-                    <div class="step" id="step3">
-                        <div class="step-icon">3</div>
-                        <div>Generating Summary</div>
-                    </div>
-                    <div class="step" id="step4">
-                        <div class="step-icon">✓</div>
-                        <div>Complete</div>
-                    </div>
-                </div>
+                <div class="progress-label">Agent progress</div>
+                <div class="progress-steps" id="progressSteps"></div>
+                <div class="progress-count" id="progressCount">0 / 0 complete</div>
             </div>
         </div>
         
@@ -694,11 +724,8 @@ async def read_root():
             document.getElementById('error').style.display = 'none';
             document.getElementById('submitBtn').disabled = true;
             
-            // Initialize agent list
+            // Initialize agent list and progress bar (one step per agent)
             initializeAgentList(jurisdictions);
-            
-            // Update progress steps
-            updateProgress(1);
             
             try {
                 const response = await fetch('/api/review', {
@@ -710,11 +737,9 @@ async def read_root():
                     throw new Error('Review failed');
                 }
                 
-                updateProgress(2);
                 const data = await response.json();
-                updateProgress(3);
                 
-                // Update agent results as they come in
+                // Update agent results and progress steps (ticks on agent boxes + progress bar)
                 if (data.agent_results) {
                     for (const [agentId, result] of Object.entries(data.agent_results)) {
                         updateAgentResult(agentId, result);
@@ -722,11 +747,9 @@ async def read_root():
                 }
                 
                 setTimeout(() => {
-                    updateProgress(4);
                     displayResults(data);
-                    document.getElementById('progress').classList.remove('active');
                     document.getElementById('submitBtn').disabled = false;
-                }, 500);
+                }, 300);
                 
             } catch (error) {
                 document.getElementById('error').style.display = 'block';
@@ -736,29 +759,33 @@ async def read_root():
             }
         }
         
-        function updateProgress(step) {
-            for (let i = 1; i <= 4; i++) {
-                const stepEl = document.getElementById('step' + i);
-                stepEl.classList.remove('active', 'complete');
-                if (i < step) {
-                    stepEl.classList.add('complete');
-                } else if (i === step) {
-                    stepEl.classList.add('active');
-                }
+        function updateProgressStep(agentId) {
+            if (typeof window.agentOrder === 'undefined') return;
+            const idx = window.agentOrder.indexOf(agentId);
+            if (idx === -1) return;
+            const stepEl = document.getElementById('step-agent-' + idx);
+            if (stepEl) {
+                stepEl.classList.remove('active');
+                stepEl.classList.add('complete');
+                const icon = stepEl.querySelector('.step-icon');
+                if (icon) icon.textContent = '✓';
             }
+            const completed = document.querySelectorAll('.progress-steps .step.complete').length;
+            const total = window.agentOrder.length;
+            const countEl = document.getElementById('progressCount');
+            if (countEl) countEl.textContent = completed + ' / ' + total + ' complete';
         }
         
         function displayResults(data) {
             const resultsDiv = document.getElementById('results');
             resultsDiv.classList.add('active');
             
+            // Only show Summary here - agent outputs are shown once in the agent list above
             let html = '';
-            
-            // Summary section
             if (data.summary) {
                 const statusClass = `status-${data.compliance_status}`;
                 const summaryHtml = typeof marked !== 'undefined' ? marked.parse(data.summary) : escapeHtml(data.summary);
-                html += `
+                html = `
                     <div class="result-section">
                         <h2>Summary</h2>
                         <span class="compliance-status ${statusClass}">${data.compliance_status.toUpperCase()}</span>
@@ -766,37 +793,6 @@ async def read_root():
                     </div>
                 `;
             }
-            
-            // Individual jurisdiction results - only show selected jurisdictions
-            const selectedJurisdictions = JSON.parse(sessionStorage.getItem('selectedJurisdictions') || '[]');
-            const jurisdictionNames = {
-                'uae': 'UAE',
-                'ksa': 'KSA',
-                'kuwait': 'Kuwait',
-                'difc': 'DIFC',
-                'qatar': 'Qatar',
-                'oman': 'Oman'
-            };
-            
-            if (data.results) {
-                for (const [key, value] of Object.entries(data.results)) {
-                    // Only show if it's a selected jurisdiction or general/summary
-                    if (key === 'summary' || key === 'general') {
-                        continue; // Already shown above
-                    }
-                    if (value && selectedJurisdictions.includes(key)) {
-                        const title = (jurisdictionNames[key] || key.charAt(0).toUpperCase() + key.slice(1)) + ' Compliance Review';
-                        const contentHtml = typeof marked !== 'undefined' ? marked.parse(value) : escapeHtml(value);
-                        html += `
-                            <div class="result-section">
-                                <h2>${title}</h2>
-                                <div class="result-content">${contentHtml}</div>
-                            </div>
-                        `;
-                    }
-                }
-            }
-            
             resultsDiv.innerHTML = html;
         }
         
@@ -811,25 +807,50 @@ async def read_root():
             agentList.classList.add('active');
             
             const agents = [
-                { id: 'pdf_document_coordinator', name: 'PDF Document Coordinator' },
-                { id: 'general_compliance_checker', name: 'General Compliance Checker' }
+                { id: 'pdf_document_coordinator', name: 'PDF Document Coordinator', short: 'PDF' },
+                { id: 'general_compliance_checker', name: 'General Compliance Checker', short: 'General' }
             ];
             
-            // Add jurisdiction agents (Qatar and Oman use general compliance - no separate agents)
             const jurisdictionMap = {
-                'uae': 'UAE Compliance Specialist',
-                'ksa': 'KSA Compliance Specialist',
-                'kuwait': 'Kuwait Compliance Specialist',
-                'difc': 'DIFC Compliance Specialist'
+                'uae': { name: 'UAE Compliance Specialist', short: 'UAE' },
+                'ksa': { name: 'KSA Compliance Specialist', short: 'KSA' },
+                'kuwait': { name: 'Kuwait Compliance Specialist', short: 'Kuwait' },
+                'difc': { name: 'DIFC Compliance Specialist', short: 'DIFC' }
             };
             
             jurisdictions.forEach(j => {
                 if (jurisdictionMap[j]) {
-                    agents.push({ id: `${j}_compliance_specialist`, name: jurisdictionMap[j] });
+                    agents.push({ id: j + '_compliance_specialist', name: jurisdictionMap[j].name, short: jurisdictionMap[j].short });
                 }
             });
             
-            agents.push({ id: 'compliance_report_compiler', name: 'Compliance Report Compiler' });
+            agents.push({ id: 'compliance_report_compiler', name: 'Compliance Report Compiler', short: 'Report' });
+            
+            // Progress bar order: PDF, General, Qatar (if selected), Oman (if selected), then UAE/KSA/Kuwait/DIFC, then Report
+            const progressItems = [
+                { id: 'pdf_document_coordinator', short: 'PDF' },
+                { id: 'general_compliance_checker', short: 'General' }
+            ];
+            if (jurisdictions.includes('qatar')) progressItems.push({ id: 'qatar_progress', short: 'Qatar' });
+            if (jurisdictions.includes('oman')) progressItems.push({ id: 'oman_progress', short: 'Oman' });
+            jurisdictions.forEach(j => {
+                if (jurisdictionMap[j]) progressItems.push({ id: j + '_compliance_specialist', short: jurisdictionMap[j].short });
+            });
+            progressItems.push({ id: 'compliance_report_compiler', short: 'Report' });
+            
+            window.agentOrder = progressItems.map(p => p.id);
+            
+            const progressSteps = document.getElementById('progressSteps');
+            progressSteps.innerHTML = progressItems.map((item, idx) => `
+                <div class="step" id="step-agent-${idx}" data-agent-id="${item.id}">
+                    <span class="step-icon">${idx + 1}</span>
+                    <span class="step-label">${item.short}</span>
+                </div>
+            `).join('');
+            document.getElementById('progressCount').textContent = '0 / ' + progressItems.length + ' complete';
+            
+            const firstStep = document.getElementById('step-agent-0');
+            if (firstStep) firstStep.classList.add('active');
             
             let html = '';
             agents.forEach(agent => {
@@ -838,8 +859,9 @@ async def read_root():
                         <div class="agent-header">
                             <div class="agent-name">${agent.name}</div>
                             <div class="agent-status">
+                                <span class="status-tick" aria-hidden="true">✓</span>
                                 <div class="spinner"></div>
-                                <span>Processing...</span>
+                                <span class="status-text">Processing...</span>
                             </div>
                         </div>
                         <div class="agent-content">
@@ -853,18 +875,26 @@ async def read_root():
         }
         
         function updateAgentResult(agentId, result) {
-            const agentEl = document.getElementById(`agent-${agentId}`);
-            const contentEl = document.getElementById(`agent-content-${agentId}`);
+            const agentEl = document.getElementById('agent-' + agentId);
+            const contentEl = document.getElementById('agent-content-' + agentId);
             
             if (agentEl && contentEl) {
                 agentEl.classList.remove('loading');
                 agentEl.classList.add('complete');
-                agentEl.querySelector('.agent-status').innerHTML = '<span style="color: #10b981;">✓ Complete</span>';
-                // Render markdown to HTML
+                const statusEl = agentEl.querySelector('.agent-status');
+                if (statusEl) {
+                    statusEl.innerHTML = '<span class="status-tick">✓</span><span class="status-text" style="color: #10b981;">Complete</span>';
+                }
                 if (typeof marked !== 'undefined') {
                     contentEl.innerHTML = marked.parse(result);
                 } else {
                     contentEl.textContent = result;
+                }
+                updateProgressStep(agentId);
+                // Qatar and Oman have no separate agents; mark their progress steps complete when General completes
+                if (agentId === 'general_compliance_checker' && typeof window.agentOrder !== 'undefined') {
+                    if (window.agentOrder.indexOf('qatar_progress') !== -1) updateProgressStep('qatar_progress');
+                    if (window.agentOrder.indexOf('oman_progress') !== -1) updateProgressStep('oman_progress');
                 }
             }
         }
@@ -933,35 +963,54 @@ async def review_pdf(file: UploadFile = File(...), jurisdictions: str = None):
         }
         
         # Get the final result
+        task_outputs_by_order = []
         if hasattr(result, 'tasks_output') and result.tasks_output:
             for task_output in result.tasks_output:
                 task_name = task_output.name if hasattr(task_output, 'name') else str(task_output)
                 task_output_raw = task_output.raw if hasattr(task_output, 'raw') else str(task_output)
+                task_outputs_by_order.append((task_name, task_output_raw))
                 
-                # Map to agent
+                # Map to agent (flexible matching: task name may vary)
+                tlower = task_name.lower()
                 agent_id = None
-                for task_key, agent_key in task_to_agent.items():
-                    if task_key in task_name.lower():
-                        agent_id = agent_key
-                        break
+                if 'parse' in tlower and 'pdf' in tlower:
+                    agent_id = 'pdf_document_coordinator'
+                elif 'general' in tlower and 'compliance' in tlower:
+                    agent_id = 'general_compliance_checker'
+                elif 'uae' in tlower and 'compliance' in tlower:
+                    agent_id = 'uae_compliance_specialist'
+                elif 'ksa' in tlower and 'compliance' in tlower:
+                    agent_id = 'ksa_compliance_specialist'
+                elif 'kuwait' in tlower and 'compliance' in tlower:
+                    agent_id = 'kuwait_compliance_specialist'
+                elif 'difc' in tlower and 'compliance' in tlower:
+                    agent_id = 'difc_compliance_specialist'
+                elif ('compile' in tlower or 'summary' in tlower or 'report' in tlower) and 'compliance' in tlower:
+                    agent_id = 'compliance_report_compiler'
+                    summary = task_output_raw
+                    results['summary'] = summary
                 
                 if agent_id:
                     agent_results[agent_id] = task_output_raw
                 
-                # Also populate results dict - only for selected jurisdictions
-                if 'general' in task_name.lower():
+                # Populate results dict for jurisdictions
+                if agent_id == 'general_compliance_checker':
                     results['general'] = task_output_raw
-                elif 'uae' in task_name.lower() and 'uae' in selected_jurisdictions:
+                elif agent_id == 'uae_compliance_specialist' and 'uae' in selected_jurisdictions:
                     results['uae'] = task_output_raw
-                elif 'ksa' in task_name.lower() and 'ksa' in selected_jurisdictions:
+                elif agent_id == 'ksa_compliance_specialist' and 'ksa' in selected_jurisdictions:
                     results['ksa'] = task_output_raw
-                elif 'kuwait' in task_name.lower() and 'kuwait' in selected_jurisdictions:
+                elif agent_id == 'kuwait_compliance_specialist' and 'kuwait' in selected_jurisdictions:
                     results['kuwait'] = task_output_raw
-                elif 'difc' in task_name.lower() and 'difc' in selected_jurisdictions:
+                elif agent_id == 'difc_compliance_specialist' and 'difc' in selected_jurisdictions:
                     results['difc'] = task_output_raw
-                elif 'compile' in task_name.lower() or 'summary' in task_name.lower():
-                    summary = task_output_raw
-                    results['summary'] = summary
+        
+        # Fallbacks: ensure PDF coordinator and Report compiler always have an entry so UI shows Complete
+        if task_outputs_by_order:
+            if 'pdf_document_coordinator' not in agent_results:
+                agent_results['pdf_document_coordinator'] = task_outputs_by_order[0][1]
+            if 'compliance_report_compiler' not in agent_results:
+                agent_results['compliance_report_compiler'] = summary or task_outputs_by_order[-1][1]
         
         # Qatar and Oman use the general compliance result (no separate agents)
         if 'qatar' in selected_jurisdictions and results.get('general'):
@@ -969,7 +1018,6 @@ async def review_pdf(file: UploadFile = File(...), jurisdictions: str = None):
         if 'oman' in selected_jurisdictions and results.get('general'):
             results['oman'] = results['general']
         
-        # If no summary extracted, use the raw result
         if not summary and hasattr(result, 'raw'):
             summary = result.raw
             results['summary'] = summary

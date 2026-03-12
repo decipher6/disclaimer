@@ -9,4 +9,3 @@ uploads/*
 node_modules/
 *.lock
 *.log
-.python-version
