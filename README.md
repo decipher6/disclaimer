@@ -35,7 +35,6 @@ Open http://localhost:8000
 
 See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions to:
 - GitHub
-- Vercel (with limitations)
 - Railway.app (recommended)
 - Render.com
 - Fly.io

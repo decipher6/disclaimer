@@ -21,42 +21,9 @@
    git push -u origin main
    ```
 
-## Vercel Deployment
+## Deployment Options (Recommended for CrewAI)
 
-### Important Notes:
-⚠️ **Vercel has limitations for long-running processes:**
-- Function timeout: 10 seconds (Hobby) / 60 seconds (Pro)
-- CrewAI reviews can take 2-5+ minutes
-- You may need Vercel Pro plan or consider alternatives
-
-### Option 1: Vercel (with Pro plan for longer timeouts)
-
-1. **Install Vercel CLI:**
-   ```bash
-   npm i -g vercel
-   ```
-
-2. **Login to Vercel:**
-   ```bash
-   vercel login
-   ```
-
-3. **Deploy:**
-   ```bash
-   vercel
-   ```
-   Follow the prompts to link your GitHub repo.
-
-4. **Set Environment Variables:**
-   - Go to Vercel Dashboard → Your Project → Settings → Environment Variables
-   - Add: `GOOGLE_API_KEY` = your API key
-   - Add: `CONTEXTUAL_AI_API_KEY` = your ContextualAI key (if needed)
-
-5. **Upgrade to Pro (if needed):**
-   - Vercel Pro allows 60-second timeouts
-   - For longer processes, consider alternatives below
-
-### Option 2: Alternative Deployments (Recommended for CrewAI)
+Long-running CrewAI reviews (2–5+ minutes) need a platform that supports them. Use one of the options below.
 
 #### Railway.app (Recommended)
 - Better for long-running Python apps
@@ -119,7 +86,7 @@ Make sure to set these in your deployment platform:
 
 ## Troubleshooting
 
-- **Timeout errors**: Upgrade to Pro plan or use Railway/Render
+- **Timeout errors**: Use Railway or Render for long-running reviews
 - **Import errors**: Check that all dependencies are in requirements.txt
 - **API key errors**: Verify environment variables are set correctly
 - **File upload issues**: Check uploads directory permissions

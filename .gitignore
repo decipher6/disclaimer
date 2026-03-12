@@ -6,9 +6,7 @@ __pycache__/
 venv/
 uploads/*
 !uploads/.gitkeep
-frontend/
 node_modules/
 *.lock
-.vercel
 *.log
 .python-version

@@ -327,10 +327,14 @@ class FullMarketingMaterialsReviewerCrew:
     
 
     def create_crew(self, selected_jurisdictions: list[str] = None) -> Crew:
-        """Creates the FullMarketingMaterialsReviewer crew with selected jurisdictions"""
+        """Creates the FullMarketingMaterialsReviewer crew with selected jurisdictions.
+        Qatar and Oman use the general compliance result (no separate agents)."""
         # Filter agents and tasks based on selected jurisdictions
         if selected_jurisdictions is None:
             selected_jurisdictions = ['uae', 'ksa', 'kuwait', 'difc']
+        
+        # Only UAE, KSA, Kuwait, DIFC have dedicated agents; Qatar and Oman use general compliance
+        crew_jurisdictions = [j for j in selected_jurisdictions if j in ('uae', 'ksa', 'kuwait', 'difc')]
         
         # Always include these agents
         active_agents = [
@@ -339,44 +343,40 @@ class FullMarketingMaterialsReviewerCrew:
             self.compliance_report_compiler(),
         ]
         
-        # Map jurisdiction codes to agent methods
+        # Map jurisdiction codes to agent methods (no qatar/oman - they use general)
         jurisdiction_agents = {
             'uae': self.uae_compliance_specialist,
             'ksa': self.ksa_compliance_specialist,
             'kuwait': self.kuwait_compliance_specialist,
             'difc': self.difc_compliance_specialist,
-            'qatar': self.qatar_compliance_specialist,
-            'oman': self.oman_compliance_specialist,
         }
         
-        # Add selected jurisdiction agents
-        for jurisdiction in selected_jurisdictions:
-            if jurisdiction in jurisdiction_agents:
-                active_agents.append(jurisdiction_agents[jurisdiction]())
+        # Add selected jurisdiction agents (only those with dedicated agents)
+        for jurisdiction in crew_jurisdictions:
+            active_agents.append(jurisdiction_agents[jurisdiction]())
         
-        # Filter tasks similarly
-        active_tasks = [
-            self.parse_pdf_document(),
-            self.general_compliance_review(),
-        ]
-        
-        # Map jurisdiction codes to task methods
-        jurisdiction_tasks = {
+        # Build tasks: parse, general, then jurisdiction-specific (only uae/ksa/kuwait/difc)
+        general_task = self.general_compliance_review()
+        jurisdiction_tasks_map = {
             'uae': self.uae_compliance_review,
             'ksa': self.ksa_compliance_review,
             'kuwait': self.kuwait_compliance_review,
             'difc': self.difc_compliance_review,
-            'qatar': self.qatar_compliance_review,
-            'oman': self.oman_compliance_review,
         }
+        jurisdiction_tasks_list = [jurisdiction_tasks_map[j]() for j in crew_jurisdictions]
         
-        # Add selected jurisdiction tasks
-        for jurisdiction in selected_jurisdictions:
-            if jurisdiction in jurisdiction_tasks:
-                active_tasks.append(jurisdiction_tasks[jurisdiction]())
+        active_tasks = [
+            self.parse_pdf_document(),
+            general_task,
+        ] + jurisdiction_tasks_list
         
-        # Always add the final compilation task
-        active_tasks.append(self.compile_final_compliance_report())
+        # Compile task with context = only the tasks we're actually running
+        compile_task = Task(
+            config=self.tasks_config["compile_final_compliance_report"],
+            context=[general_task] + jurisdiction_tasks_list,
+            markdown=False,
+        )
+        active_tasks.append(compile_task)
         
         return Crew(
             agents=active_agents,

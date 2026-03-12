@@ -815,14 +815,12 @@ async def read_root():
                 { id: 'general_compliance_checker', name: 'General Compliance Checker' }
             ];
             
-            // Add jurisdiction agents
+            // Add jurisdiction agents (Qatar and Oman use general compliance - no separate agents)
             const jurisdictionMap = {
                 'uae': 'UAE Compliance Specialist',
                 'ksa': 'KSA Compliance Specialist',
                 'kuwait': 'Kuwait Compliance Specialist',
-                'difc': 'DIFC Compliance Specialist',
-                'qatar': 'Qatar Compliance Specialist',
-                'oman': 'Oman Compliance Specialist'
+                'difc': 'DIFC Compliance Specialist'
             };
             
             jurisdictions.forEach(j => {
@@ -961,13 +959,15 @@ async def review_pdf(file: UploadFile = File(...), jurisdictions: str = None):
                     results['kuwait'] = task_output_raw
                 elif 'difc' in task_name.lower() and 'difc' in selected_jurisdictions:
                     results['difc'] = task_output_raw
-                elif 'qatar' in task_name.lower() and 'qatar' in selected_jurisdictions:
-                    results['qatar'] = task_output_raw
-                elif 'oman' in task_name.lower() and 'oman' in selected_jurisdictions:
-                    results['oman'] = task_output_raw
                 elif 'compile' in task_name.lower() or 'summary' in task_name.lower():
                     summary = task_output_raw
                     results['summary'] = summary
+        
+        # Qatar and Oman use the general compliance result (no separate agents)
+        if 'qatar' in selected_jurisdictions and results.get('general'):
+            results['qatar'] = results['general']
+        if 'oman' in selected_jurisdictions and results.get('general'):
+            results['oman'] = results['general']
         
         # If no summary extracted, use the raw result
         if not summary and hasattr(result, 'raw'):
